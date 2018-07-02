@@ -9,11 +9,6 @@ It has been designed to be as painless to add as possible.
 Once you've setup a profiler in the code, you can activate it by setting a level at runtime (usually via command line arguments), and
 all of the profilers at or below that level will be active.
 
-It's important to note, that when a function runs, each profiler will still need to check whether it should record data, so it will 
-definitely consume some unnecesssary cpu cycles. It does not record data unless it is active, but it does do a few comparison checks 
-(if true, if mylevel < globallevel, that sort of thing). If you are after absolute speed, then after identifying and optimizing 
-problematic code you may consider removing the profiling code as you see fit. 
-
 Inside your function, when you are creating a new instance of the profiler you decide at what level the section of code should profile. 
 In production I might use level 1 for a html GET requesthandler, level 2 inside important functions, and 3 for line by line breakdowns
 of potentially problematic code. If I want to see how things are generally running, I'll run: myapp -p 1, which will show me the big
@@ -23,6 +18,11 @@ You call the profiler.New function with 2 arguments; the name of the profiler (f
 will always show, a level 1 will show when the global level is 1 or higher. The idea is to create your profiling code and categorize it 
 once, and when you want to watch the profiling data, you run the app with a -p1 or -p5 flag depending on how much detail you want
 (only useful if you've set profilers up going to level 5).
+
+It's important to note, that when a function runs, each profiler will still need to check whether it should record data, so it will 
+definitely consume some unnecesssary cpu cycles. It does not record data unless it is active, but it does do a few comparison checks 
+(if true, if mylevel < globallevel, that sort of thing). If you are after absolute speed, then after identifying and optimizing 
+problematic code you may consider removing the profiling code as you see fit. 
 
 Example Usage:
 
@@ -50,7 +50,8 @@ import "github.com/zeroepix/goprofiler"
 
 func WorkOn(x int){
     cp := profiler.New("WorkOn", 1)     // this is going to be a level 1 profiler
-	defer cp.Finish()                   // important, this will perform the calculations and print it out. You can call manually if you don't want to defer it.
+	defer cp.Finish()                   // important, this will perform the calculations and print it out. 
+    //  You can call manually if you don't want to defer it.
 
     // do some initial setup
     cp.Tick("setup")                    // take a time measurement
@@ -61,7 +62,7 @@ func WorkOn(x int){
     heavyWorkOn(x)                      // call another function
     cp.Tick("heavywork")                // this will measure the time between "work2" and the return from heavyWorkOn(x)
     // start some really tricky work, open a deep profiler here for this bit of code
-    cp3 := profiler.New("hard work", 3) // this is flagged as a level 3, and will only show with 3 or higher as the command line argument (myapp -p 3)
+    cp3 := profiler.New("hard work", 3) // this is flagged as a level 3
     // do a little bit of hard work
     cp3.Tick("hardwork1")
     // do more hard work
